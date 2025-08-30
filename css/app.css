@@ -97,7 +97,7 @@ ul{list-style:none}
 .temp{opacity:.72}
 
 footer{
-  background:rgb(8, 19, 78); padding:1rem;text-align:center;margin-top:2rem;border-top:1px solid rgba(255,255,255,.08); position: absolute; width: 100%;left: 0; bottom: 0; z-index: 50;
+  background:rgb(8, 19, 78); padding:1rem;text-align:center;margin-top:2rem;border-top:1px solid rgba(255,255,255,.08);;
 }
 
 /* Responsive form */
