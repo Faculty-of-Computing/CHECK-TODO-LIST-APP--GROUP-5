@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Check Todo – Pro (Fixed)</title>
+  <link rel="icon" type="image/x-icon" href="../images/Check_20250822_110336_0000.png">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+  <div class="background-effect"></div>
+  <header><p>COS121 Project Group Five</p></header>
+
+  <nav>
+    <div class="nav-inner" role="navigation" aria-label="Main">
+      <img src="../images/logo.png" alt="Check Todo logo" class="logo" />
+
+      <button id="menuToggle" class="menu-btn" aria-expanded="false" aria-controls="navLinks" aria-label="Open menu">☰</button>
+
+      <!-- Links live on the RIGHT side (next to avatar) on desktop; become a right drawer on mobile -->
+      <div id="navLinks" class="nav-links" role="menu">
+        <a href="#" role="menuitem">Home</a>
+        <a href="#" role="menuitem">Benefits</a>
+        <!-- <a href="#" role="menuitem">Docs</a> -->
+      </div>
+
+      <div class="user-info">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRTPivfgmcGNTDgbAqSdKNMO_HfxiaUq7uTWg&s" alt="User avatar" />
+        <span style="font-weight:600">Username</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Error toast -->
+  <div id="errorMessage" role="status" aria-live="polite"></div>
+
+  <main class="container">
+    <section class="todo" aria-labelledby="todoHeading">
+      <div class="progress">
+        <h2 id="todoHeading">Progress</h2>
+        <progress value="0" max="100" aria-label="Task completion"></progress>
+        <p id="progressText">0/0 completed</p>
+      </div>
+
+      <form id="taskForm" class="task-form">
+        <input id="taskInput" class="input" type="text" placeholder="Add a new task" autocomplete="off" />
+        <button id="addTaskButton" class="btn" type="submit">
+          <span class="btn-text">+</span>
+        </button>
+      </form>
+
+      <div id="loader">⏳ Syncing with server...</div>
+      <ul id="taskList" aria-live="polite"></ul>
+    </section>
+  </main>
+
+  <footer>
+    <!-- <p>&copy; 2025 Check Todo List | COS 121 GROUP5 PROJECT | 2024/2025 Academic Session.</p> -->
+    <p>Developed by: Group 5, All rights reserved.</p>
+  </footer>
+
+  <script src="../JS/app.js"></script>
+</body>
+</html>
