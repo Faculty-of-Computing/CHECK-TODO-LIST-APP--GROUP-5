@@ -104,5 +104,5 @@ footer{
 @media (max-width:768px){
   .task-form{flex-direction:column}
   .btn{width:100%}
-  .btn {border-radius: 15px; font-size: 24px; padding: 5px 0;}
+  .btn-text {border-radius: 15px; font-size: 24px; padding: 5px 0;}
 }
