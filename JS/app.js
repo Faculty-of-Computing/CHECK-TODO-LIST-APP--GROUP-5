@@ -39,7 +39,7 @@
           const sp = document.createElement('span'); sp.className = 'spinner'; sp.setAttribute('aria-hidden','true'); sp.style.marginLeft = '8px'; btn.appendChild(sp);
         }
       }else{
-        btn.disabled = false; if(text) text.textContent = 'Add Task';
+        btn.disabled = false; if(text) text.textContent = '+';
         const sp = btn.querySelector('.spinner'); if(sp) sp.remove();
       }
     }
