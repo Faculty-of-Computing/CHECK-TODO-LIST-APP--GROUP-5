@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -7,56 +7,71 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
     />
-    <link rel="stylesheet" href="./signup.css" />
-    <link src="icon" href="icon.jpg" />
-    <title>sign-up page</title>
+    <link rel="stylesheet" href="../css/auth.css" />
+    <link rel="icon" href="icon.jpg" />
+    <title>Sign Up / Login</title>
   </head>
 
   <body>
     <div class="container" id="container">
+      
+      <!-- 🔹 SIGN UP FORM -->
       <div class="form-container sign-up">
-        <form>
+        <form id="signupForm">
           <h1>Create Account</h1>
-          <input type="text" placeholder="Name" />
-          <input type="email" placeholder="Email" />
-          <input type="password" placeholder="Password" />
-          <button>Sign Up</button>
+          <input id="registerUser" type="text" placeholder="Username" required />
+          <input id="registerEmail" type="email" placeholder="Email" required/>
+          <input id="registerPass" type="password" placeholder="Password" required />
+          <button id="signupBtn" type="submit">Sign Up</button>
         </form>
       </div>
+
+      <!-- 🔹 SIGN IN FORM -->
       <div class="form-container sign-in">
-        <form>
+        <form id="loginForm">
           <h1>Sign In</h1>
-          <input type="email" placeholder="Email" />
-          <input type="password" placeholder="Password" />
-          <a href="#">Forget Your Password?</a>
-          <button>Sign In</button>
+          <input id="loginUser" type="text" placeholder="Username" required />
+          <input id="loginPass" type="password" placeholder="Password" required />
+          <a href="#">Forgot Your Password?</a>
+          <button id="loginBtn" type="submit">Sign In</button>
         </form>
       </div>
+
+      <!-- 🔹 TOGGLE PANELS -->
       <div class="toggle-container">
         <div class="toggle">
           <div class="toggle-panel toggle-left">
-            <img class="logo" src="images/logo.png" alt="logo" />
+            <img class="logo" src="../images/Check_20250822_110336_0000.png" alt="logo" />
             <h1>Welcome Back!</h1>
             <p>
-              The samplest way to organize your tasks and boost productivity.
+              The simplest way to organize your tasks and boost productivity.
               Clean, intuitive, and powerful to-do management for everyone.
             </p>
-            <button class="hidden" id="login">Sign In</button>
+            <button class="hidden" id="login" type="button">Sign In</button>
           </div>
           <div class="toggle-panel toggle-right">
-            <img class="logoh" src="images/logo.png" alt="logo" />
-
+            <img
+              class="logoh"
+              src="../images/Check_20250822_110336_0000.png"
+              alt="logo"
+            />
             <h1>Hello, Friend!</h1>
             <p>
-              The samplest way to organize your tasks and boost productivity.
+              The simplest way to organize your tasks and boost productivity.
               Clean, intuitive, and powerful to-do management for everyone.
             </p>
-            <button class="hidden" id="register">Sign Up</button>
+            <button class="hidden" id="register" type="button">Sign Up</button>
           </div>
         </div>
       </div>
     </div>
 
-    <script src="auth.js"></script>
+    <!-- 🔹 JS -->
+    <script src="../JS/auth.js"></script>
+    <!-- 46ec13cf004414c783f9e47666defbf483de7694eaddaad69cbc39d3bb0eebf6 
+        Username: GIANT1
+        email: ggg4g@gmail.com
+        Password: Binance 
+    -->
   </body>
 </html>

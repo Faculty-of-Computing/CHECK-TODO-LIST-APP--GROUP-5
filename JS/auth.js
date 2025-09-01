@@ -1,68 +1,85 @@
-    const container = document.getElementById('container');
-    const registerBtn = document.getElementById('register');
-    const loginBtn = document.getElementById('login');
+// TOGGLE BETWEEN FORMS
+const container = document.getElementById("container");
+const registerBtn = document.getElementById("register");
+const loginBtn = document.getElementById("login");
 
-    const BASE_URL = "https://check-todo-backend.onrender.com";
+registerBtn.addEventListener("click", () => {
+  container.classList.add("active");
+});
 
-    //  Toggle UI
-    registerBtn.addEventListener('click', () => {
-        container.classList.add("active");
+loginBtn.addEventListener("click", () => {
+  container.classList.remove("active");
+});
+
+
+// BACKEND API URL
+const API_URL = "https://chk-be-test2.onrender.com/"; // change this if you deploy later
+
+// SIGNUP FORM
+const signupForm = document.getElementById("signupForm");
+
+signupForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const username = document.getElementById("registerUser").value;
+  const email = document.getElementById("registerEmail").value;
+  const password = document.getElementById("registerPass").value;
+
+  try {
+    const res = await fetch(`${API_URL}/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, email, password }),
     });
 
-    loginBtn.addEventListener('click', () => {
-        container.classList.remove("active");
+    const data = await res.json();
+
+    if (res.ok) {
+      alert("✅ Registration successful! You can now log in.");
+      container.classList.remove("active"); // switch to login form
+    } else {
+      alert("❌ " + data.message);
+    }
+  } catch (err) {
+    console.error("Signup Error:", err);
+    alert("❌ Something went wrong. Please try again.");
+  }
+});
+
+// LOGIN FORM
+const loginForm = document.getElementById("loginForm");
+
+loginForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const username = document.getElementById("loginUser").value;
+  const password = document.getElementById("loginPass").value;
+
+  try {
+    const res = await fetch(`${API_URL}/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, password }),
     });
 
-    //  Sing Up Form Hand
-    async function registerUser() {
-      const username = document.getElementById("registerUser").value;
-      const password = document.getElementById("registerPass").value;
+    const data = await res.json();
 
-      try {
-        const res = await fetch({BASE_URL}/signup, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password })
-        });
+    if (res.ok) {
+      // Save token to localStorage
+      localStorage.setItem("token", data.token);
+      alert("✅ Login successful!");
 
-        const data = await res.json();
-        if (res.ok) {
-          alert("" + data.message);
-        } else {
-          alert(" " + (data.error || "Signup failed"));
-        }
-      } catch (err) {
-        alert("Network error: " + err.message);
-      }
+      // Redirect to your tasks page (update this path to match your FE)
+      window.location.href = "app.html";
+    } else {
+      alert("❌ " + data.message);
     }
-
-    // 🔹 Login Function
-    async function loginUser() {
-      const username = document.getElementById("loginUser").value;
-      const password = document.getElementById("loginPass").value;
-
-      try {
-        const res = await fetch({BASE_URL}/login, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password })
-        });
-
-        const data = await res.json();
-        if (res.ok) {
-          alert(" " + data.message);
-          if (data.token) {
-            localStorage.setItem("token", data.token); // save token if backend sends it
-          }
-        } else {
-          alert(" " + (data.error || "Login failed"));
-        }
-      } catch (err) {
-        alert(" Network error: " + err.message);
-      }
-    }
-
-    // Link buttons to backend
-    registerBtn.addEventListener("click", registerUser);
-    loginBtn.addEventListener("click", loginUser);
-    
+  } catch (err) {
+    console.error("Login Error:", err);
+    alert("❌ Something went wrong. Please try again.");
+  }
+});
