@@ -1,361 +1,572 @@
-// -----------------------------
-    // Config + Local Storage keys
-    // -----------------------------
-    const apiUrl = 'https://check-todo-backend.onrender.com/tasks';
-    const LS_TASKS = 'todo_tasks_v1';
-    const LS_PENDING = 'todo_pending_v1';
-    let tasks = [];
+// ======================================
+// 🔧 CONFIG – NO TRAILING SPACES!
+// ======================================
+const API_BASE = 'https://chk-be-test2.onrender.com';
+const TASKS_ENDPOINT = `${API_BASE}/tasks`;
 
-    // -----------------------------
-    // Global error catching (helps diagnose the original "Fetch Error:")
-    // -----------------------------
-    window.addEventListener('error', (ev) => {
-      console.error('Uncaught error', ev.error || ev.message, ev.error?.stack);
-      showError('Unexpected error: ' + (ev.error?.message || ev.message || 'See console'));
+const LS_TOKEN = 'todo_token';
+const LS_USERNAME = 'todo_username';
+const LS_TASKS = 'todo_tasks_v2';
+const LS_PENDING = 'todo_pending_v2';
+
+let tasks = [];
+
+const VALID_CATEGORIES = ['Work', 'Personal', 'Study', 'Shopping', 'Other'];
+const VALID_PRIORITIES = ['Low', 'Medium', 'High'];
+
+// ======================================
+// 🛠 UTILS
+// ======================================
+function uid() {
+  return 'task-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+}
+
+function escapeHtml(str) {
+  const map = {
+    '&': '&amp;',
+    '<': '<',
+    '>': '>',
+    '"': '&quot;',
+    "'": '&#39;'
+  };
+  return String(str || '').replace(/[&<>"']/g, s => map[s]);
+}
+
+// ======================================
+// 🔐 AUTH HEADER
+// ======================================
+function getAuthHeader() {
+  const token = localStorage.getItem(LS_TOKEN);
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+}
+
+// ======================================
+// 💬 MESSAGES
+// ======================================
+function showMessage(msg, type = 'error') {
+  const el = document.getElementById('errorMessage');
+  if (!el) return console.warn(msg);
+  el.textContent = msg;
+  el.className = type;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 5000);
+}
+const showError = (msg) => showMessage(msg, 'error');
+const showSuccess = (msg) => showMessage(msg, 'success');
+
+// ======================================
+// 💾 LOCAL STORAGE
+// ======================================
+function saveLocal() {
+  try {
+    localStorage.setItem(LS_TASKS, JSON.stringify(tasks));
+  } catch (e) {
+    showError('Storage full');
+  }
+}
+
+function loadLocal() {
+  try {
+    return JSON.parse(localStorage.getItem(LS_TASKS)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function loadPending() {
+  try {
+    return JSON.parse(localStorage.getItem(LS_PENDING)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function savePending(list) {
+  try {
+    localStorage.setItem(LS_PENDING, JSON.stringify(list));
+  } catch (e) {
+    console.warn('Pending save failed');
+  }
+}
+
+// ======================================
+// 🌐 SAFE FETCH WITH TIMEOUT
+// ======================================
+async function safeFetchJson(url, options = {}, timeout = 10000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const res = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+        ...options.headers
+      }
     });
-    window.addEventListener('unhandledrejection', (ev) => {
-      console.error('Unhandled promise rejection', ev.reason);
-      showError('Unexpected promise error: ' + (ev.reason?.message || String(ev.reason)));
+
+    clearTimeout(id);
+
+    let data;
+    try {
+      data = await res.json();
+    } catch (e) {
+      data = { error: 'Invalid JSON response' };
+    }
+
+    if (!res.ok) {
+      const msg = data.msg || data.error || `HTTP ${res.status}`;
+      throw new Error(msg);
+    }
+
+    return data;
+  } catch (err) {
+    clearTimeout(id);
+    if (err.name === 'AbortError') {
+      throw new Error('Request timed out');
+    }
+    throw err;
+  }
+}
+
+// ======================================
+// 🔄 NORMALIZE: Handle arrays and objects
+// ======================================
+function normalizeTask(raw) {
+  if (!raw) return null;
+
+  // If it's an array: [id, user_id, title, desc, cat, pri, status]
+  if (Array.isArray(raw)) {
+    return {
+      id: String(raw[0]),
+      title: String(raw[2] || 'Untitled').trim(),
+      description: String(raw[3] || ''),
+      category: VALID_CATEGORIES.includes(raw[4]) ? raw[4] : 'Personal',
+      priority: VALID_PRIORITIES.includes(raw[5]) ? raw[5] : 'Medium',
+      completed: Boolean(raw[6])
+    };
+  }
+
+  // If it's an object
+  return {
+    id: String(raw.id),
+    title: String(raw.title || 'Untitled').trim(),
+    description: String(raw.description || ''),
+    category: VALID_CATEGORIES.includes(raw.category) ? raw.category : 'Personal',
+    priority: VALID_PRIORITIES.includes(raw.priority) ? raw.priority : 'Medium',
+    completed: Boolean(raw.status)
+  };
+}
+
+// ======================================
+// 📤 Convert UI → Backend: Must send { subject }
+// ======================================
+function taskToBackend(task) {
+  const subject = String(task.title || '').trim();
+  if (!subject) throw new Error('Subject must be a non-empty string');
+  return {
+    subject,
+    description: String(task.description || ''),
+    category: task.category,
+    priority: task.priority,
+    status: task.completed ? 1 : 0
+  };
+}
+
+// ======================================
+// 🖼️ CREATE TASK ELEMENT
+// ======================================
+function createTaskElement(task) {
+  const li = document.createElement('li');
+  li.className = `task-item ${task.completed ? 'completed' : ''}`;
+  li.dataset.id = task.id;
+
+  const checkboxId = `task-${task.id}`;
+
+  li.innerHTML = `
+    <div class="task-content">
+      <input type="checkbox" id="${checkboxId}" ${task.completed ? 'checked' : ''} />
+      <div class="task-text">
+        <h3 class="task-title">${escapeHtml(task.title)}</h3>
+        ${task.description ? `<p class="task-desc">${escapeHtml(task.description)}</p>` : ''}
+        <div class="task-meta">
+          <span class="priority ${task.priority.toLowerCase()}">Priority: ${task.priority}</span>
+          <span class="category">${task.category}</span>
+        </div>
+      </div>
+    </div>
+    <div class="task-actions">
+      <img class="editButton" src="../images/edit.png" alt="Edit" title="Edit Task" />
+      <img class="deleteButton" src="../images/delete.png" alt="Delete" title="Delete Task" />
+    </div>
+    <div class="task-edit" hidden>
+      <input type="text" class="editInput" value="${escapeHtml(task.title)}" />
+      <textarea class="editDesc">${escapeHtml(task.description)}</textarea>
+      <select class="editPriority">
+        ${VALID_PRIORITIES.map(p => `<option value="${p}" ${task.priority === p ? 'selected' : ''}>${p}</option>`).join('')}
+      </select>
+      <select class="editCategory">
+        ${VALID_CATEGORIES.map(c => `<option value="${c}" ${task.category === c ? 'selected' : ''}>${c}</option>`).join('')}
+      </select>
+      <button class="btn saveEdit">Save</button>
+      <button class="btn cancelEdit" style="background:#64748b">Cancel</button>
+    </div>
+  `;
+
+  // ✅ Use event value directly
+  li.querySelector('input[type="checkbox"]').addEventListener('change', (e) => {
+    onToggleComplete(task.id, e.target.checked);
+  });
+
+  li.querySelector('.editButton').addEventListener('click', () => startEdit(task.id));
+  li.querySelector('.deleteButton').addEventListener('click', () => onDelete(task.id));
+  li.querySelector('.saveEdit').addEventListener('click', () => finishEdit(task.id));
+  li.querySelector('.cancelEdit').addEventListener('click', () => cancelEdit(task.id));
+
+  return li;
+}
+
+// ======================================
+// 🎨 RENDER TASKS
+// ======================================
+function renderTasks() {
+  const ul = document.getElementById('taskList');
+  if (!ul) return;
+
+  const filterP = document.getElementById('filterPriority')?.value || '';
+  const filterC = document.getElementById('filterCategory')?.value || '';
+
+  const filtered = tasks.filter(t => {
+    return (!filterP || t.priority === filterP) && (!filterC || t.category === filterC);
+  });
+
+  ul.innerHTML = filtered.length ? '' : '<li class="no-tasks">📭 No tasks found</li>';
+  filtered.forEach(t => ul.appendChild(createTaskElement(t)));
+
+  const completed = tasks.filter(t => t.completed).length;
+  const total = tasks.length;
+  const progress = document.querySelector('progress');
+  const progressText = document.getElementById('progressText');
+  if (progress) progress.value = total ? (completed / total) * 100 : 0;
+  if (progressText) progressText.textContent = `${completed}/${total} completed`;
+}
+
+// ======================================
+// ➕ ADD TASK
+// ======================================
+async function onAdd(e) {
+  e.preventDefault();
+
+  const title = document.getElementById('taskInput')?.value.trim();
+  if (!title) return showError('Task title is required');
+
+  const newTask = {
+    id: uid(),
+    title,
+    description: document.getElementById('taskDesc')?.value || '',
+    category: document.getElementById('taskCategory')?.value || 'Personal',
+    priority: document.getElementById('taskPriority')?.value || 'Medium',
+    completed: false,
+    _temp: true
+  };
+
+  tasks.push(newTask);
+  renderTasks();
+
+  // Reset form
+  document.getElementById('taskInput').value = '';
+  document.getElementById('taskDesc').value = '';
+  document.getElementById('taskCategory').value = 'Personal';
+  document.getElementById('taskPriority').value = 'Medium';
+
+  setButtonLoading(true);
+  showLoader(true);
+
+  try {
+    if (!navigator.onLine) {
+      savePending([...loadPending(), { type: 'add', tempId: newTask.id, payload: taskToBackend(newTask) }]);
+      showSuccess('✅ Saved offline — will sync when online');
+      return;
+    }
+
+    const payload = taskToBackend(newTask);
+
+    const res = await safeFetchJson(TASKS_ENDPOINT, {
+      method: 'POST',
+      body: JSON.stringify(payload)
     });
 
-    // -----------------------------
-    // UI helpers
-    // -----------------------------
-    function showError(message){
-      const el = document.getElementById('errorMessage');
-      if(!el) return; el.textContent = message; el.style.display = 'block';
-      clearTimeout(showError._t); showError._t = setTimeout(()=>{ el.style.display='none'; }, 5000);
-      console.warn('UI Error:', message);
-    }
-    function showLoader(show){
-      const loader = document.getElementById('loader'); if(loader) loader.style.display = show ? 'block' : 'none';
-    }
-    function setAddButtonLoading(loading){
-      const btn = document.getElementById('addTaskButton'); if(!btn) return;
-      const text = btn.querySelector('.btn-text');
-      if(loading){
-        btn.disabled = true; if(text) text.textContent = 'Posting...';
-        if(!btn.querySelector('.spinner')){
-          const sp = document.createElement('span'); sp.className = 'spinner'; sp.setAttribute('aria-hidden','true'); sp.style.marginLeft = '8px'; btn.appendChild(sp);
-        }
-      }else{
-        btn.disabled = false; if(text) text.textContent = '+';
-        const sp = btn.querySelector('.spinner'); if(sp) sp.remove();
-      }
+    // ✅ Use `res.id` only if returned
+    const realId = res.id ? String(res.id) : newTask.id;
+    const task = tasks.find(t => t.id === newTask.id);
+    if (task) {
+      task.id = realId;
+      delete task._temp;
     }
 
-    function normalizeTask(raw){
-      // defensive normalization
-      if(!raw) return { id: String(Date.now()), title: '', completed: false };
-      return {
-        id: String(raw.id ?? raw._id ?? raw.uuid ?? raw._key ?? Date.now()),
-        title: (raw.title ?? raw.task ?? raw.description ?? '') + '',
-        completed: Boolean(raw.completed)
-      };
-    }
+    showSuccess(`✅ "${title}" added!`);
+  } catch (err) {
+    console.error('Add failed:', err);
+    const payload = taskToBackend(newTask);
+    savePending([...loadPending(), { type: 'add', tempId: newTask.id, payload }]);
+    showError(`⚠️ Saved offline: ${err.message}`);
+  } finally {
+    setButtonLoading(false);
+    showLoader(false);
+    saveLocal();
+    renderTasks();
+  }
+}
 
-    function escapeHtml(str){
-      return String(str).replace(/[&<>"']/g, (s) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
-    }
+// ======================================
+// ✅ TOGGLE, EDIT, DELETE
+// ======================================
+async function onToggleComplete(id, completed) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  task.completed = completed;
+  renderTasks();
+  saveLocal();
 
-    function saveLocal(){
-      try{ localStorage.setItem(LS_TASKS, JSON.stringify(tasks)); }catch(e){ console.warn('Could not save tasks locally', e); }
-    }
-    function loadLocal(){
-      try{
-        const raw = localStorage.getItem(LS_TASKS); if(!raw) return [];
-        const parsed = JSON.parse(raw); if(Array.isArray(parsed)) return parsed.map(normalizeTask);
-        return [];
-      }catch(e){ console.warn('Could not load tasks from localStorage', e); return []; }
-    }
+  const payload = taskToBackend(task);
+  if (!navigator.onLine) {
+    savePending([...loadPending(), { type: 'update', id, payload }]);
+    return;
+  }
 
-    function loadPending(){
-      try{ const raw = localStorage.getItem(LS_PENDING); return raw ? JSON.parse(raw) : []; }catch(e){ return []; }
-    }
-    function savePending(list){ try{ localStorage.setItem(LS_PENDING, JSON.stringify(list)); }catch(e){ console.warn('Could not save pending ops', e); } }
+  try {
+    await safeFetchJson(`${TASKS_ENDPOINT}/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    });
+  } catch (err) {
+    savePending([...loadPending(), { type: 'update', id, payload }]);
+    showError('⚠️ Update saved offline');
+  }
+}
 
-    async function syncPending(){
-      const pending = loadPending(); if(!pending.length) return;
-      console.info('Syncing pending ops', pending.length);
-      const remaining = [];
-      for(const op of pending){
-        try{
-          if(op.type === 'add'){
-            const res = await safeFetch(apiUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ title: op.title, completed:false }) });
-            if(res && res.ok){
-              const saved = await safeParseJson(res);
-              // replace local temp id in tasks
-              const idx = tasks.findIndex(t => t.id === op.tempId);
-              if(idx > -1){ tasks[idx] = normalizeTask(saved || { id: op.tempId, title: op.title, completed: false }); }
-            }else{ remaining.push(op); }
-          }else if(op.type === 'delete'){
-            const res = await safeFetch(`${apiUrl}/${encodeURIComponent(op.id)}`, { method:'DELETE' });
-            if(!res || !res.ok) remaining.push(op);
-          }else if(op.type === 'update'){
-            const res = await safeFetch(`${apiUrl}/${encodeURIComponent(op.id)}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(op.payload) });
-            if(!res || !res.ok) remaining.push(op);
-          }
-        }catch(err){ console.warn('Sync op failed, keep for later', op, err); remaining.push(op); }
-      }
-      savePending(remaining);
-      if(remaining.length === 0) showError('All changes synced with server');
-      saveLocal(); renderTasks();
-    }
+function startEdit(id) {
+  const li = document.querySelector(`li[data-id="${id}"]`);
+  if (li) {
+    li.classList.add('editing');
+    li.querySelector('.task-edit').hidden = false;
+  }
+}
 
-    // safeFetch: handles network errors separately so we can distinguish parse errors
-    async function safeFetch(input, opts){
-      try{
-        return await fetch(input, opts);
-      }catch(err){
-        // network-level failure (DNS, CORS, offline, etc.)
-        console.error('Network-level fetch failed', err);
-        return null;
-      }
-    }
+function finishEdit(id) {
+  const li = document.querySelector(`li[data-id="${id}"]`);
+  if (!li) return;
 
-    async function safeParseJson(response){
-      if(!response) return null;
-      const ct = response.headers?.get('content-type') || '';
-      try{
-        if(ct.includes('application/json')) return await response.json();
-        const text = await response.text();
-        try{ return JSON.parse(text); }catch(e){ return text; }
-      }catch(e){ console.warn('safeParseJson failed', e); return null; }
-    }
+  const title = li.querySelector('.editInput').value.trim();
+  if (!title) return showError('Title is required');
 
-    function updateProgress(){
-      const completed = tasks.filter(t=>t.completed).length; const total = tasks.length;
-      const progress = document.querySelector('progress'); if(progress) progress.value = total ? (completed/total)*100 : 0;
-      const progressText = document.getElementById('progressText'); if(progressText) progressText.textContent = `${completed}/${total} completed`;
-    }
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
 
-    function createTaskLi(task){
-      const li = document.createElement('li'); li.className='item'; li.dataset.id = task.id; if(task._temp) li.classList.add('temp');
+  task.title = title;
+  task.description = li.querySelector('.editDesc').value;
+  task.priority = li.querySelector('.editPriority').value;
+  task.category = li.querySelector('.editCategory').value;
 
-      const titleText = escapeHtml(task.title);
-      const checkboxId = `task_${task.id}`;
-      li.innerHTML = `
-        <div class="task-content">
-          <input type="checkbox" id="${checkboxId}" ${task.completed ? 'checked' : ''} />
-          <label for="${checkboxId}" class="task-label">${titleText}</label>
-        </div>
-        <div class="task-actions">
-          <img class="editButton" src="../images/edit.png" alt="Edit" title="Edit Task" />
-          <img class="deleteButton" src="../images/delete.png" alt="Delete" title="Delete Task" />
-        </div>
-        <div class="task-edit" hidden>
-          <input type="text" class="editInput" value="${titleText}" />
-          <div class="edit-controls">
-            <button class="btn saveEdit" type="button">Save</button>
-            <button class="btn cancelEdit" type="button" style="background:#64748b;color:#fff">Cancel</button>
-          </div>
-        </div>`;
+  li.classList.remove('editing');
+  li.querySelector('.task-edit').hidden = true;
 
-      // defensive event attachments
-      const checkbox = li.querySelector('input[type="checkbox"]');
-      if(checkbox) checkbox.addEventListener('change', (e) => onToggleComplete(li.dataset.id, e.target.checked));
+  renderTasks();
+  saveLocal();
 
-      const editBtn = li.querySelector('.editButton'); if(editBtn) editBtn.addEventListener('click', ()=> startEdit(li.dataset.id));
-      const deleteBtn = li.querySelector('.deleteButton'); if(deleteBtn) deleteBtn.addEventListener('click', ()=> onDelete(li.dataset.id));
+  const payload = taskToBackend(task);
+  if (!navigator.onLine) {
+    savePending([...loadPending(), { type: 'update', id, payload }]);
+    showSuccess('✅ Saved offline');
+    return;
+  }
 
-      const saveBtn = li.querySelector('.saveEdit'); if(saveBtn) saveBtn.addEventListener('click', ()=> finishEdit(li.dataset.id));
-      const cancelBtn = li.querySelector('.cancelEdit'); if(cancelBtn) cancelBtn.addEventListener('click', ()=> cancelEdit(li.dataset.id));
+  safeFetchJson(`${TASKS_ENDPOINT}/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload)
+  })
+  .then(() => showSuccess('✅ Updated!'))
+  .catch(err => {
+    savePending([...loadPending(), { type: 'update', id, payload }]);
+    showError('⚠️ Saved offline');
+  });
+}
 
-      const editInput = li.querySelector('.editInput');
-      if(editInput){
-        editInput.addEventListener('keydown', (e) => {
-          if(e.key === 'Enter') finishEdit(li.dataset.id);
-          if(e.key === 'Escape') cancelEdit(li.dataset.id);
+function cancelEdit(id) {
+  const li = document.querySelector(`li[data-id="${id}"]`);
+  if (li) {
+    li.classList.remove('editing');
+    li.querySelector('.task-edit').hidden = true;
+  }
+}
+
+async function onDelete(id) {
+  if (!confirm('Delete this task?')) return;
+
+  const wasOnline = navigator.onLine;
+  tasks = tasks.filter(t => t.id !== id);
+  renderTasks();
+  saveLocal();
+
+  if (!wasOnline) {
+    savePending([...loadPending(), { type: 'delete', id }]);
+    showError('🗑️ Deleted offline');
+    return;
+  }
+
+  try {
+    await safeFetchJson(`${TASKS_ENDPOINT}/${id}`, { method: 'DELETE' });
+    showSuccess('🗑️ Deleted!');
+  } catch (err) {
+    savePending([...loadPending(), { type: 'delete', id }]);
+    showError('⚠️ Will delete when online');
+  }
+}
+
+// ======================================
+// 🔄 SYNC PENDING
+// ======================================
+async function syncPending() {
+  const ops = loadPending();
+  if (!ops.length) return;
+
+  const remaining = [];
+
+  for (const op of ops) {
+    try {
+      if (op.type === 'add') {
+        const res = await safeFetchJson(TASKS_ENDPOINT, {
+          method: 'POST',
+          body: JSON.stringify(op.payload)
         });
+        const realId = res.id ? String(res.id) : null;
+        if (realId && op.tempId) {
+          const task = tasks.find(t => t.id === op.tempId);
+          if (task) task.id = realId;
+        }
+      } else if (op.type === 'update') {
+        await safeFetchJson(`${TASKS_ENDPOINT}/${op.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(op.payload)
+        });
+      } else if (op.type === 'delete') {
+        await safeFetchJson(`${TASKS_ENDPOINT}/${op.id}`, { method: 'DELETE' });
       }
-
-      return li;
+      // If successful, don't add to remaining
+    } catch (err) {
+      remaining.push(op);
     }
+  }
 
-    function renderTasks(){
-      const ul = document.getElementById('taskList'); if(!ul) return; ul.innerHTML = '';
-      tasks.forEach(task => ul.appendChild(createTaskLi(task)));
-      updateProgress();
+  savePending(remaining);
+  if (remaining.length === 0) showSuccess('✅ All synced!');
+  saveLocal();
+  renderTasks();
+}
+
+// ======================================
+// 📥 FETCH TASKS
+// ======================================
+async function fetchTasks() {
+  showLoader(true);
+
+  if (!navigator.onLine) {
+    tasks = loadLocal().map(normalizeTask).filter(Boolean);
+    renderTasks();
+    showError('📶 Offline — using saved tasks');
+    showLoader(false);
+    return;
+  }
+
+  try {
+    const data = await safeFetchJson(TASKS_ENDPOINT);
+    if (!Array.isArray(data)) throw new Error('Invalid format');
+    tasks = data.map(normalizeTask).filter(Boolean);
+    saveLocal();
+    renderTasks();
+    await syncPending();
+  } catch (err) {
+    console.error('Fetch failed:', err);
+    const local = loadLocal().map(normalizeTask).filter(Boolean);
+    if (local.length) {
+      tasks = local;
+      renderTasks();
+      showError('⚠️ Using local data');
+    } else {
+      showError('❌ No tasks. Check login.');
     }
+  } finally {
+    showLoader(false);
+  }
+}
 
-    function startEdit(id){
-      try{
-        const li = document.querySelector(`li[data-id="${id}"]`); if(!li) return;
-        const task = tasks.find(t=>t.id===id); if(!task) return;
-        li.querySelector('.task-content').hidden = true;
-        const editDiv = li.querySelector('.task-edit'); editDiv.hidden = false;
-        const input = editDiv.querySelector('.editInput'); input.value = task.title; input.focus(); input.select();
-      }catch(e){ console.warn('startEdit failed', e); }
-    }
+// ======================================
+// 🎯 HELPERS
+// ======================================
+function setButtonLoading(loading) {
+  const btn = document.getElementById('addTaskButton');
+  const text = btn?.querySelector('.btn-text');
+  if (!btn) return;
+  btn.disabled = loading;
+  if (text) text.textContent = loading ? 'Adding...' : '+';
+  if (loading && !btn.querySelector('.spinner')) {
+    const sp = document.createElement('span');
+    sp.className = 'spinner';
+    sp.style.marginLeft = '8px';
+    btn.appendChild(sp);
+  } else if (!loading && btn.querySelector('.spinner')) {
+    btn.querySelector('.spinner').remove();
+  }
+}
 
-    function cancelEdit(id){
-      const li = document.querySelector(`li[data-id="${id}"]`); if(!li) return;
-      li.querySelector('.task-content').hidden = false; li.querySelector('.task-edit').hidden = true;
-    }
+function showLoader(show) {
+  const el = document.getElementById('loader');
+  if (el) el.style.display = show ? 'block' : 'none';
+}
 
-    async function finishEdit(id){
-      const li = document.querySelector(`li[data-id="${id}"]`); if(!li) return;
-      const input = li.querySelector('.editInput'); const newValue = input.value.trim(); if(!newValue) return showError('Task cannot be empty');
-      const taskIndex = tasks.findIndex(t => t.id === id); if(taskIndex === -1) return; const prevTitle = tasks[taskIndex].title;
-      // Optimistic update
-      const label = li.querySelector('.task-label'); if(label) label.innerHTML = escapeHtml(newValue);
-      tasks[taskIndex].title = newValue; li.querySelector('.task-content').hidden = false; li.querySelector('.task-edit').hidden = true;
-      saveLocal(); showLoader(true);
-      const payload = { title: newValue };
-      try{
-        const res = await safeFetch(`${apiUrl}/${encodeURIComponent(id)}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-        if(!res || !res.ok) throw new Error('Failed to save to server');
-        // update successful
-      }catch(err){
-        // rollback
-        tasks[taskIndex].title = prevTitle; if(label) label.innerHTML = escapeHtml(prevTitle);
-        showError('Could not save edit to server — rolled back');
-        // queue for retry
-        const pending = loadPending(); pending.push({ type:'update', id, payload }); savePending(pending);
-      }finally{ showLoader(false); saveLocal(); }
-    }
+// ======================================
+// 🚀 INIT
+// ======================================
+document.addEventListener('DOMContentLoaded', () => {
+  const token = localStorage.getItem(LS_TOKEN);
+  if (!token) {
+    window.location.href = 'auth.html';
+    return;
+  }
 
-    // -----------------------------
-    // API & actions (robust + offline-friendly)
-    // -----------------------------
-    async function fetchTasks(){
-      showLoader(true);
-      if(!navigator.onLine){
-        // offline — load from local storage
-        console.info('Offline — loading local tasks');
-        tasks = loadLocal(); renderTasks(); showLoader(false); showError('Offline: showing saved tasks');
-        // still attempt to sync pending in case user came online
-        return;
-      }
+  const username = localStorage.getItem(LS_USERNAME) || 'User';
+  const avatar = document.getElementById('userAvatar');
+  if (avatar) avatar.textContent = username.charAt(0).toUpperCase();
 
-      try{
-        const res = await safeFetch(apiUrl);
-        if(!res){
-          throw new Error('Network request failed (see console)');
-        }
-        if(!res.ok){
-          const txt = await safeParseJson(res);
-          throw new Error(`Server error ${res.status}: ${JSON.stringify(txt)}`);
-        }
-        const data = await safeParseJson(res);
-        let taskArray = [];
-        if(Array.isArray(data)) taskArray = data;
-        else if(Array.isArray(data.tasks)) taskArray = data.tasks;
-        else if(data && typeof data === 'object'){
-          // some APIs return { tasks: [...] } or { data: [...] }
-          if(Array.isArray(data.data)) taskArray = data.data;
-          else if(Array.isArray(data.tasks)) taskArray = data.tasks;
-          else taskArray = [];
-        }
-        tasks = taskArray.map(normalizeTask);
-        renderTasks();
-        saveLocal();
-        // try to sync any pending ops now that we have connectivity
-        await syncPending();
-      }catch(err){
-        console.error('Fetch Error:', err);
-        // fallback to local data (if any)
-        const local = loadLocal(); if(local && local.length){ tasks = local; renderTasks(); showError('Could not contact server — loaded saved tasks'); }
-        else showError(err.message || 'Could not load tasks (check console)');
-      }finally{ showLoader(false); }
-    }
+  document.getElementById('logoutBtn')?.addEventListener('click', () => {
+    const pending = loadPending();
+    if (pending.length && !confirm(`You have ${pending.length} unsynced tasks. Logout?`)) return;
+    localStorage.removeItem(LS_TOKEN);
+    localStorage.removeItem(LS_USERNAME);
+    localStorage.removeItem(LS_TASKS);
+    localStorage.removeItem(LS_PENDING);
+    showSuccess('👋 Logged out!');
+    setTimeout(() => window.location.href = 'auth.html', 600);
+  });
 
-    async function onAdd(e){
-      e.preventDefault();
-      const input = document.getElementById('taskInput'); if(!input) return;
-      const taskText = input.value.trim(); if(!taskText) return showError('Task cannot be empty');
+  document.getElementById('taskForm')?.addEventListener('submit', onAdd);
+  document.getElementById('filterPriority')?.addEventListener('change', renderTasks);
+  document.getElementById('filterCategory')?.addEventListener('change', renderTasks);
 
-      const tempId = `temp-${Date.now()}`;
-      const optimistic = { id: tempId, title: taskText, completed:false, _temp:true };
-      tasks.push(optimistic); const ul = document.getElementById('taskList'); const newLi = createTaskLi(optimistic); ul.appendChild(newLi); updateProgress();
-      input.value = ''; setAddButtonLoading(true); showLoader(true);
+  const menuToggle = document.getElementById('menuToggle');
+  const navLinks = document.getElementById('navLinks');
+  menuToggle?.addEventListener('click', () => {
+    navLinks.classList.toggle('open');
+    menuToggle.setAttribute('aria-expanded', navLinks.classList.contains('open'));
+  });
 
-      try{
-        if(!navigator.onLine){
-          // queue for later
-          const pending = loadPending(); pending.push({ type:'add', title: taskText, tempId }); savePending(pending);
-          showError('Offline: task saved locally and will sync when online');
-          saveLocal();
-          return;
-        }
+  fetchTasks();
 
-        const res = await safeFetch(apiUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ title: taskText, completed:false }) });
-        if(!res){ throw new Error('Network request failed'); }
-        if(!res.ok){ const txt = await safeParseJson(res); throw new Error(`Server error ${res.status}: ${JSON.stringify(txt)}`); }
-        const savedRaw = await safeParseJson(res);
-        const saved = normalizeTask(savedRaw || { id: tempId, title: taskText, completed:false });
-
-        const index = tasks.findIndex(t=>t.id===tempId); if(index > -1) tasks[index] = saved;
-        // update DOM li -> new id
-        newLi.dataset.id = saved.id; newLi.classList.remove('temp');
-        const checkbox = newLi.querySelector('input[type="checkbox"]'); if(checkbox){ checkbox.id = `task_${saved.id}`; }
-        const label = newLi.querySelector('.task-label'); if(label) label.setAttribute('for', `task_${saved.id}`);
-
-        saveLocal();
-      }catch(err){
-        console.error('Add failed', err);
-        // save locally and queue the post
-        const pending = loadPending(); pending.push({ type:'add', title: taskText, tempId }); savePending(pending);
-        showError('Saved locally (server unreachable) — will sync later');
-        saveLocal();
-      }finally{ setAddButtonLoading(false); showLoader(false); }
-    }
-
-    async function onToggleComplete(id, completed){
-      const li = document.querySelector(`li[data-id="${id}"]`); if(!li) return; const taskIndex = tasks.findIndex(t=>t.id===id); if(taskIndex===-1) return;
-      const prevCompleted = tasks[taskIndex].completed; tasks[taskIndex].completed = completed; updateProgress(); saveLocal(); showLoader(true);
-      try{
-        if(!navigator.onLine){
-          // queue update
-          const pending = loadPending(); pending.push({ type:'update', id, payload: { completed } }); savePending(pending);
-          showError('Offline: update queued');
-          return;
-        }
-        const res = await safeFetch(`${apiUrl}/${encodeURIComponent(id)}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ completed }) });
-        if(!res || !res.ok) throw new Error('Update failed');
-      }catch(err){
-        console.error('Toggle failed', err);
-        showError('Could not update status, rolled back'); tasks[taskIndex].completed = prevCompleted; const cb = li.querySelector('input[type="checkbox"]'); if(cb) cb.checked = prevCompleted; updateProgress(); saveLocal();
-      }finally{ showLoader(false); }
-    }
-
-    async function onDelete(id){
-      const li = document.querySelector(`li[data-id="${id}"]`); if(!li) return; const nextSib = li.nextSibling; const prevTasks = [...tasks];
-      tasks = tasks.filter(t=>t.id!==id); li.remove(); updateProgress(); saveLocal(); showLoader(true);
-      try{
-        if(!navigator.onLine){
-          const pending = loadPending(); pending.push({ type:'delete', id }); savePending(pending);
-          showError('Offline: delete queued');
-          return;
-        }
-        const res = await safeFetch(`${apiUrl}/${encodeURIComponent(id)}`, { method:'DELETE' });
-        if(!res || !res.ok) throw new Error('Delete failed on server');
-      }catch(err){
-        console.error('Delete failed', err);
-        showError('Delete failed, restored the item'); tasks = prevTasks; const ul = document.getElementById('taskList'); const deletedTask = prevTasks.find(t=>t.id===id); const newLi = createTaskLi(deletedTask); ul.insertBefore(newLi, nextSib); updateProgress(); saveLocal();
-      }finally{ showLoader(false); }
-    }
-
-    // -----------------------------
-    // Events
-    // -----------------------------
-    document.addEventListener('DOMContentLoaded', ()=>{
-      try{
-        const form = document.getElementById('taskForm'); const menuToggle = document.getElementById('menuToggle'); const navLinks = document.getElementById('navLinks');
-        if(form) form.addEventListener('submit', onAdd);
-        if(menuToggle && navLinks){
-          menuToggle.addEventListener('click', ()=>{
-            const isOpen = navLinks.classList.toggle('open'); menuToggle.setAttribute('aria-expanded', String(isOpen));
-          });
-        }
-        document.querySelectorAll('#navLinks a').forEach(a=> a.addEventListener('click', ()=>{
-          if(window.matchMedia('(max-width:768px)').matches){ navLinks.classList.remove('open'); document.getElementById('menuToggle').setAttribute('aria-expanded','false'); }
-        }));
-
-        // Try to fetch tasks from server (will fallback to local data if server is unreachable)
-        fetchTasks();
-
-        // Sync pending when back online
-        window.addEventListener('online', ()=>{ showError('Back online — syncing changes...'); syncPending(); fetchTasks(); });
-      }catch(e){ console.error('Init failed', e); showError('Initialization failed (see console)'); }
-    });
+  window.addEventListener('online', () => {
+    showSuccess('🌐 Back online — syncing...');
+    syncPending();
+    fetchTasks();
+  });
+});

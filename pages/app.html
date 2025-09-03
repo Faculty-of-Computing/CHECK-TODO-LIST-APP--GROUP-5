@@ -3,56 +3,84 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Check Todo – Pro (Fixed)</title>
-  <link rel="icon" type="image/x-icon" href="../images/Check_20250822_110336_0000.png">
+  <title>Check Todo – Pro</title>
+  <link rel="icon" href="../images/Check_20250822_110336_0000.png" type="image/x-icon">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/app.css">
 </head>
 <body>
   <div class="background-effect"></div>
-  <!-- <header><p>COS121 Project Group Five</p></header> -->
 
   <nav>
-    <div class="nav-inner" role="navigation" aria-label="Main">
+    <div class="nav-inner" role="navigation">
       <img src="../images/logo.png" alt="Check Todo logo" class="logo" />
-
-      <button id="menuToggle" class="menu-btn" aria-expanded="false" aria-controls="navLinks" aria-label="Open menu">☰</button>
-
-      <div id="navLinks" class="nav-links" role="menu">
+      <button id="menuToggle" class="menu-btn" aria-expanded="false">☰</button>
+      <div id="navLinks" class="nav-links">
         <a href="#" role="menuitem">Home</a>
         <a href="#" role="menuitem">Benefits</a>
-        <!-- <a href="#" role="menuitem">Docs</a> -->
       </div>
-
       <div class="user-info">
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRTPivfgmcGNTDgbAqSdKNMO_HfxiaUq7uTWg&s" alt="User avatar" />
-        <span style="font-weight:600">Username</span>
+        <div class="avatar-placeholder" id="userAvatar">U</div>
+        <button id="logoutBtn" class="logout-btn">Logout</button>
       </div>
     </div>
   </nav>
 
-  <!-- Error toast -->
   <div id="errorMessage" role="status" aria-live="polite"></div>
 
   <main class="container">
-    <section class="todo" aria-labelledby="todoHeading">
+    <section class="todo">
       <div class="progress">
-        <h2 id="todoHeading">Progress</h2>
-        <progress value="0" max="100" aria-label="Task completion"></progress>
+        <h2>Your Tasks</h2>
+        <progress value="0" max="100"></progress>
         <p id="progressText">0/0 completed</p>
       </div>
 
+      <div class="filter-controls">
+        <select id="filterPriority" class="filter-select">
+          <option value="">All Priorities</option>
+          <option value="Low">🔴 Low</option>
+          <option value="Medium">🟡 Medium</option>
+          <option value="High">🔴 High</option>
+        </select>
+        <select id="filterCategory" class="filter-select">
+          <option value="">All Categories</option>
+          <option value="Work">💼 Work</option>
+          <option value="Personal">🏠 Personal</option>
+          <option value="Study">📚 Study</option>
+          <option value="Shopping">🛒 Shopping</option>
+          <option value="Other">📦 Other</option>
+        </select>
+      </div>
+
       <form id="taskForm" class="task-form">
-        <input id="taskInput" class="input" type="text" placeholder="Add a new task" autocomplete="off" />
+        <input id="taskInput" class="input" type="text" placeholder="Task title" required />
+        <textarea id="taskDesc" class="input" placeholder="Description (optional)" rows="1"></textarea>
+        <div class="form-row">
+          <select id="taskPriority" class="input" required>
+            <option value="" disabled selected>Priority</option>
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+          <select id="taskCategory" class="input" required>
+            <option value="" disabled selected>Category</option>
+            <option value="Work">Work</option>
+            <option value="Personal">Personal</option>
+            <option value="Study">Study</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
         <button id="addTaskButton" class="btn" type="submit">
           <span class="btn-text">+</span>
         </button>
       </form>
 
       <div id="loader">⏳ Syncing with server...</div>
-      <ul id="taskList" aria-live="polite"></ul>
+      <ul id="taskList"></ul>
+
       <footer>
-        <!-- <p>&copy; 2025 Check Todo List | COS 121 GROUP5 PROJECT | 2024/2025 Academic Session.</p> -->
         <p>Developed by: Group 5, All rights reserved.</p>
       </footer>
     </section>

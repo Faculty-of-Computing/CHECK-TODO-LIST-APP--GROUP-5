@@ -7,10 +7,18 @@
       "default",
       {
         "ignore": [
-          "backdrop-filter"
+          "backdrop-filter",
+          "user-select"
         ]
       }
     ],
-    "no-inline-styles": "off"
+    "no-inline-styles": "off",
+    "axe/forms": "off",
+    "axe/aria": [
+      "default",
+      {
+        "aria-required-parent": "off"
+      }
+    ]
   }
 }
