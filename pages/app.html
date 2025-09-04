@@ -37,6 +37,32 @@
         <p id="progressText">0/0 completed</p>
       </div>
 
+      <form id="taskForm" class="task-form">
+        <input id="taskInput" class="input" type="text" placeholder="Task title" required />
+        <textarea id="taskDesc" class="input" placeholder="Description (optional)" rows="1"></textarea>
+        
+        <div class="form-row">
+          <select id="taskPriority" class="input" required>
+            <option value="" disabled selected>Priority</option>
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+          <select id="taskCategory" class="input" required>
+            <option value="" disabled selected>Category</option>
+            <option value="Work">Work</option>
+            <option value="Personal">Personal</option>
+            <option value="Study">Study</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <button id="addTaskButton" class="btn" type="submit">
+          <span class="btn-text">+</span>
+        </button>
+      </form>
+
       <div class="filter-controls">
         <select id="filterPriority" class="filter-select">
           <option value="">All Priorities</option>
@@ -54,30 +80,6 @@
         </select>
       </div>
 
-      <form id="taskForm" class="task-form">
-        <input id="taskInput" class="input" type="text" placeholder="Task title" required />
-        <textarea id="taskDesc" class="input" placeholder="Description (optional)" rows="1"></textarea>
-        <div class="form-row">
-          <select id="taskPriority" class="input" required>
-            <option value="" disabled selected>Priority</option>
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-          </select>
-          <select id="taskCategory" class="input" required>
-            <option value="" disabled selected>Category</option>
-            <option value="Work">Work</option>
-            <option value="Personal">Personal</option>
-            <option value="Study">Study</option>
-            <option value="Shopping">Shopping</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-        <button id="addTaskButton" class="btn" type="submit">
-          <span class="btn-text">+</span>
-        </button>
-      </form>
-
       <div id="loader">⏳ Syncing with server...</div>
       <ul id="taskList"></ul>
 
@@ -86,6 +88,13 @@
       </footer>
     </section>
   </main>
+  <div id="editModal" class="modal" hidden>
+    <div class="modal-content" id="modalContent"></div>
+  </div>
+
+  <div id="editModal" hidden>
+  <div id="modalContent"></div>
+</div>
 
   <script src="../JS/app.js"></script>
 </body>
