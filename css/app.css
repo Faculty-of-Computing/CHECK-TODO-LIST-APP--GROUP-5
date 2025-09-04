@@ -456,3 +456,163 @@ footer {
   .form-row, .filter-controls { flex-direction: column; }
   .filter-select { width: 100%; }
 }
+
+/* Ensure no conflicting styles override these */
+#editModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6); /* Slightly darker overlay */
+  display: none; /* Hidden by default, shown when not hidden */
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* High z-index to ensure it’s on top */
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+#editModal:not([hidden]) {
+  display: flex; /* Show modal when not hidden */
+}
+
+#modalContent {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 550px; /* Slightly wider for better form layout */
+  max-height: 85vh; /* Prevent overflow on small screens */
+  overflow-y: auto;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+}
+
+/* Task edit form */
+.task-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem; /* Consistent spacing */
+}
+
+/* Form inputs */
+.task-edit input.editInput,
+.task-edit textarea.editDesc,
+.task-edit select.editPriority,
+.task-edit select.editCategory {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #d1d5db; /* Gray border */
+  border-radius: 6px;
+  font-size: 1rem;
+  line-height: 1.5;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.task-edit input.editInput:focus,
+.task-edit textarea.editDesc:focus,
+.task-edit select.editPriority:focus,
+.task-edit select.editCategory:focus {
+  outline: none;
+  border-color: #2563eb; /* Blue focus border */
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Textarea specific */
+.task-edit textarea.editDesc {
+  min-height: 120px;
+  resize: vertical; /* Allow vertical resize only */
+}
+
+/* Select dropdown styling */
+.task-edit select.editPriority,
+.task-edit select.editCategory {
+  appearance: none;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="%23666666" d="M7 10l5 5 5-5z"/></svg>') no-repeat right 0.8rem center/14px;
+  padding-right: 2rem; /* Space for dropdown arrow */
+}
+
+/* Buttons */
+.task-edit .btn {
+  padding: 0.8rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.task-edit .saveEdit {
+  background: #2563eb; /* Blue */
+  color: #ffffff;
+}
+
+.task-edit .cancelEdit {
+  background: #64748b; /* Gray */
+  color: #ffffff;
+}
+
+.task-edit .btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.task-edit .btn:active {
+  transform: translateY(0);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  #modalContent {
+    padding: 1rem;
+    max-width: 90vw; /* Use more screen width on mobile */
+    max-height: 80vh;
+  }
+
+  .task-edit {
+    gap: 1rem;
+  }
+
+  .task-edit input.editInput,
+  .task-edit textarea.editDesc,
+  .task-edit select.editPriority,
+  .task-edit select.editCategory {
+    font-size: 0.95rem;
+    padding: 0.6rem;
+  }
+
+  .task-edit textarea.editDesc {
+    min-height: 100px;
+  }
+
+  .task-edit .btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 400px) {
+  #modalContent {
+    padding: 0.8rem;
+    max-width: 95vw;
+  }
+
+  .task-edit {
+    gap: 0.8rem;
+  }
+
+  .task-edit input.editInput,
+  .task-edit textarea.editDesc,
+  .task-edit select.editPriority,
+  .task-edit select.editCategory {
+    font-size: 0.9rem;
+    padding: 0.5rem;
+  }
+
+  .task-edit .btn {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.9rem;
+  }
+}
