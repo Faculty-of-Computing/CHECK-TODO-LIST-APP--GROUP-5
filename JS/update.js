@@ -1,7 +1,7 @@
 // ======================================
 // 🔧 CONFIG – NO TRAILING SPACES!
 // ======================================
-const API_BASE = 'https://check-be-production.up.railway.app';
+const API_BASE = 'https://chk-be-test2.onrender.com';
 const LS_TOKEN = 'todo_token';
 const LS_USERNAME = 'todo_username';
 const LS_TASKS = 'todo_tasks_v2';
@@ -187,22 +187,20 @@ function createTaskElement(task) {
   const checkboxId = `task-${task.id}`;
 
   li.innerHTML = `
-    <div class="task-row">
-      <div class="task-content">
-        <input type="checkbox" id="${checkboxId}" ${task.completed ? 'checked' : ''} />
-        <div class="task-text">
-          <h3 class="task-title">${escapeHtml(task.title)}</h3>
-          ${task.description ? `<p class="task-desc">${escapeHtml(task.description)}</p>` : ''}
-          <div class="task-meta">
-            <span class="priority ${task.priority.toLowerCase()}">Priority: ${task.priority}</span>
-            <span class="category">${task.category}</span>
-          </div>
+    <div class="task-content">
+      <input type="checkbox" id="${checkboxId}" ${task.completed ? 'checked' : ''} />
+      <div class="task-text">
+        <h3 class="task-title">${escapeHtml(task.title)}</h3>
+        ${task.description ? `<p class="task-desc">${escapeHtml(task.description)}</p>` : ''}
+        <div class="task-meta">
+          <span class="priority ${task.priority.toLowerCase()}">Priority: ${task.priority}</span>
+          <span class="category">${task.category}</span>
         </div>
       </div>
-      <div class="task-actions">
-        <img class="editButton" src="../images/edit.png" alt="Edit" title="Edit Task" />
-        <img class="deleteButton" src="../images/delete.png" alt="Delete" title="Delete Task" />
-      </div>
+    </div>
+    <div class="task-actions">
+      <img class="editButton" src="../images/edit.png" alt="Edit" title="Edit Task" />
+      <img class="deleteButton" src="../images/delete.png" alt="Delete" title="Delete Task" />
     </div>
     <div class="task-edit" hidden>
       <input type="text" class="editInput" value="${escapeHtml(task.title)}" />
@@ -308,7 +306,7 @@ async function onAdd(e) {
 
     showSuccess(`✅ "${title}" added!`);
   } catch (err) {
-    showError('Add failed:', err);
+    console.error('Add failed:', err);
     const payload = taskToBackend(newTask);
     savePending([...loadPending(), { type: 'add', tempId: newTask.id, payload }]);
     showError(`⚠️ Saved offline: ${err.message}`);
@@ -487,7 +485,7 @@ async function fetchTasks() {
     renderTasks();
     await syncPending();
   } catch (err) {
-    showError('Fetch failed:', err);
+    console.error('Fetch failed:', err);
     const local = loadLocal().map(normalizeTask).filter(Boolean);
     if (local.length) {
       tasks = local;

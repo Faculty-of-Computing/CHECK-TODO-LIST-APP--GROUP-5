@@ -365,7 +365,7 @@ ul { list-style: none; }
 }
 
 .task-actions img {
-  width: 20px;
+  width: 30px;
   opacity: 0.85;
   cursor: pointer;
   transition: opacity 0.15s, transform 0.15s;
@@ -374,6 +374,13 @@ ul { list-style: none; }
 .task-actions img:hover {
   opacity: 1;
   transform: translateY(-1px);
+}
+
+.task-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.2rem;
 }
 
 .task-edit {

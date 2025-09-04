@@ -250,3 +250,26 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
+
+  /* Message styles */
+  .message {
+  display: none;
+  margin: 10px auto;
+  padding: 10px;
+  max-width: 400px;
+  border-radius: 6px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.message.error {
+  display: block;
+  background: #ffe5e5;
+  color: #d60000;
+}
+
+.message.success {
+  display: block;
+  background: #e6ffed;
+  color: #007a29;
+}

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Check Todo – Pro</title>
-  <link rel="icon" href="../images/Check_20250822_110336_0000.png" type="image/x-icon">
+  <link rel="icon" href="../images/logo.png" type="image/x-icon">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/app.css">
 </head>
@@ -32,14 +32,14 @@
     <section class="todo">
       <div class="progress">
         <h2>Your Tasks</h2>
-        <progress value="0" max="100"></progress>
+        <progress value="0" max="100" id="progressBar"></progress>
         <p id="progressText">0/0 completed</p>
       </div>
 
       <div class="filter-controls">
         <select id="filterPriority" class="filter-select">
           <option value="">All Priorities</option>
-          <option value="Low">🔴 Low</option>
+          <option value="Low">🟢 Low</option>
           <option value="Medium">🟡 Medium</option>
           <option value="High">🔴 High</option>
         </select>
@@ -81,7 +81,7 @@
       <ul id="taskList"></ul>
 
       <footer>
-        <p>Developed by: Group 5, All rights reserved.</p>
+        <p>Developed by: COS121 - Group 5, All rights reserved.</p>
       </footer>
     </section>
   </main>

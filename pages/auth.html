@@ -5,12 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
   <link rel="stylesheet" href="../css/auth.css" />
-  <link rel="icon" href="icon.jpg" />
+  <link rel="icon" href="../images/logo-f.png" />
   <title>Sign Up / Login</title>
 </head>
 <body>
+      <!-- 🔔 Message placeholder for JavaScript -->
+    <div id="errorMessage" class="message"></div>
   <div class="container" id="container">
-    
+
     <!-- SIGN UP FORM -->
     <div class="form-container sign-up">
       <form id="signupForm">
@@ -19,7 +21,7 @@
         <input id="registerEmail" type="email" placeholder="Email" required />
         <div class="input-group">
           <input id="registerPass" type="password" placeholder="Password" required />
-          <span class="toggle-password" data-target="registerPass">👁️</span>
+          <span class="toggle-password" data-target="registerPass"></span>
         </div>
         <button id="signupBtn" type="submit">Sign Up</button>
       </form>
@@ -30,12 +32,13 @@
       <form id="loginForm">
         <h1>Sign In</h1>
         <input id="loginUser" type="text" placeholder="Username" required />
-        <div class="input-group">
-          <input id="loginPass" type="password" placeholder="Password" required />
-          <span class="toggle-password" data-target="loginPass">👁️</span>
-        </div>
-        <a href="#">Forgot Your Password?</a>
-        <button id="loginBtn" type="submit">Sign In</button>
+    <div class="input-group">
+      <input id="loginPass" type="password" placeholder="Password" required />
+      <span class="toggle-password" data-target="loginPass"></span>
+    </div>
+    <a href="#">Forgot Your Password?</a>
+    <button id="loginBtn" type="submit">Sign In</button>
+
       </form>
     </div>
 
@@ -43,7 +46,7 @@
     <div class="toggle-container">
       <div class="toggle">
         <div class="toggle-panel toggle-left">
-          <img class="logo" src="../images/Check_20250822_110336_0000.png" alt="logo" />
+          <img class="logo" src="../images/logo.png" alt="logo" />
           <h1>Welcome Back!</h1>
           <p>
             The simplest way to organize your tasks and boost productivity.
@@ -52,7 +55,7 @@
           <button class="hidden" id="login" type="button">Sign In</button>
         </div>
         <div class="toggle-panel toggle-right">
-          <img class="logoh" src="../images/Check_20250822_110336_0000.png" alt="logo" />
+          <img class="logoh" src="../images/logo.png" alt="logo" />
           <h1>Hello, Friend!</h1>
           <p>
             The simplest way to organize your tasks and boost productivity.
