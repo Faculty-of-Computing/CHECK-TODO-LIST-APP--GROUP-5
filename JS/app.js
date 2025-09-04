@@ -349,29 +349,57 @@ async function onToggleComplete(id, completed) {
 
 function startEdit(id) {
   const li = document.querySelector(`li[data-id="${id}"]`);
-  if (li) {
-    li.classList.add('editing');
-    li.querySelector('.task-edit').hidden = false;
-  }
+  const modal = document.getElementById('editModal');
+  const modalContent = document.getElementById('modalContent');
+  if (!li || !modal || !modalContent) return;
+
+  const editSection = li.querySelector('.task-edit');
+  if (!editSection) return;
+
+  li.classList.add('editing');
+  editSection.hidden = false;
+
+  // Move the edit UI into the modal
+  modalContent.innerHTML = '';
+  modalContent.appendChild(editSection);
+  modal.hidden = false;
 }
+
+document.getElementById('editModal').addEventListener('click', (e) => {
+  if (e.target.id === 'editModal') {
+    const li = document.querySelector('li.editing');
+    if (li) {
+      cancelEdit(li.dataset.id);
+    }
+  }
+});
 
 function finishEdit(id) {
   const li = document.querySelector(`li[data-id="${id}"]`);
-  if (!li) return;
+  const modal = document.getElementById('editModal');
+  const modalContent = document.getElementById('modalContent');
+  if (!li || !modal || !modalContent) return;
 
-  const title = li.querySelector('.editInput').value.trim();
+  // Query form elements from modalContent instead of li
+  const title = modalContent.querySelector('.editInput').value.trim();
   if (!title) return showError('Title is required');
 
   const task = tasks.find(t => t.id === id);
   if (!task) return;
 
   task.title = title;
-  task.description = li.querySelector('.editDesc').value;
-  task.priority = li.querySelector('.editPriority').value;
-  task.category = li.querySelector('.editCategory').value;
+  task.description = modalContent.querySelector('.editDesc').value;
+  task.priority = modalContent.querySelector('.editPriority').value;
+  task.category = modalContent.querySelector('.editCategory').value;
+
+  const editSection = modalContent.querySelector('.task-edit');
+  if (editSection) {
+    li.appendChild(editSection);
+    editSection.hidden = true;
+  }
 
   li.classList.remove('editing');
-  li.querySelector('.task-edit').hidden = true;
+  modal.hidden = true;
 
   renderTasks();
   saveLocal();
@@ -396,11 +424,21 @@ function finishEdit(id) {
 
 function cancelEdit(id) {
   const li = document.querySelector(`li[data-id="${id}"]`);
-  if (li) {
-    li.classList.remove('editing');
-    li.querySelector('.task-edit').hidden = true;
+  const modal = document.getElementById('editModal');
+  const modalContent = document.getElementById('modalContent');
+
+  if (!li || !modal || !modalContent) return;
+
+  const editSection = modalContent.querySelector('.task-edit');
+  if (editSection) {
+    li.appendChild(editSection);
+    editSection.hidden = true;
   }
+
+  li.classList.remove('editing');
+  modal.hidden = true;
 }
+
 
 async function onDelete(id) {
   if (!confirm('Delete this task?')) return;
