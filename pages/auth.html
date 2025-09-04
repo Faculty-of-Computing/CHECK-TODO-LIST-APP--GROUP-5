@@ -9,9 +9,16 @@
   <title>Sign Up / Login</title>
 </head>
 <body>
-      <!-- 🔔 Message placeholder for JavaScript -->
-    <div id="errorMessage" class="message"></div>
+  <!-- 🔔 Message placeholder for JavaScript -->
+  <div id="errorMessage" class="message"></div>
+
   <div class="container" id="container">
+
+    <!-- NEW: Mobile Tabs -->
+    <div class="mobile-tabs">
+      <button id="login" type="button" class="active">Sign In</button>
+      <button id="register" type="button">Sign Up</button>
+    </div>
 
     <!-- SIGN UP FORM -->
     <div class="form-container sign-up">
@@ -32,17 +39,16 @@
       <form id="loginForm">
         <h1>Sign In</h1>
         <input id="loginUser" type="text" placeholder="Username" required />
-    <div class="input-group">
-      <input id="loginPass" type="password" placeholder="Password" required />
-      <span class="toggle-password" data-target="loginPass"></span>
-    </div>
-    <a href="#">Forgot Your Password?</a>
-    <button id="loginBtn" type="submit">Sign In</button>
-
+        <div class="input-group">
+          <input id="loginPass" type="password" placeholder="Password" required />
+          <span class="toggle-password" data-target="loginPass"></span>
+        </div>
+        <a href="#">Forgot Your Password?</a>
+        <button id="loginBtn" type="submit">Sign In</button>
       </form>
     </div>
 
-    <!-- TOGGLE PANELS -->
+    <!-- TOGGLE PANELS (desktop only) -->
     <div class="toggle-container">
       <div class="toggle">
         <div class="toggle-panel toggle-left">

@@ -273,3 +273,125 @@
   background: #e6ffed;
   color: #007a29;
 }
+
+
+/* ===========================
+   📱 MOBILE STYLES
+   =========================== */
+@media (max-width: 768px) {
+  body {
+    background: linear-gradient(to bottom, #e2e2e2, #c9d6ff);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 380px;
+    min-height: auto;
+    border-radius: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    overflow: hidden;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* Hide desktop sliding panels */
+  .toggle-container {
+    display: none;
+  }
+
+  /* Mobile Tabs */
+  .mobile-tabs {
+    display: flex;
+    justify-content: space-between;
+    background: #f4f4f9;
+    border-radius: 12px;
+    margin: 15px auto;
+    width: 90%;
+    overflow: hidden;
+  }
+
+  .mobile-tabs button {
+    flex: 1;
+    padding: 12px 0;
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #555;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  .mobile-tabs button.active {
+    background: #e0e7ff;
+    color: #000;
+  }
+
+  /* Forms */
+  .form-container {
+    width: 100%;
+    position: relative !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    height: auto !important;
+    transform: none !important;
+  }
+
+  .sign-in,
+  .sign-up {
+    width: 100% !important;
+    position: relative !important;
+    height: auto !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 1 !important;
+    z-index: auto !important;
+    transform: none !important;
+  }
+
+  /* Only show the active form */
+  .sign-in {
+    display: flex;
+  }
+
+  .sign-up {
+    display: none;
+  }
+
+  .container.active .sign-in {
+    display: none;
+  }
+
+  .container.active .sign-up {
+    display: flex;
+  }
+
+  /* Inputs & buttons full width */
+  form input,
+  form button {
+    width: 100%;
+    font-size: 14px;
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  form a {
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+}

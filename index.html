@@ -1,14 +1,79 @@
-<!DOCTYPE HTML>
-<html>
-  <head></head>
-  <body>
-    <button popovertarget="modal1">TOCH ME</button>
-    <div id="modal1" popover>
-    <a href="pages/auth.html">
-      Touch me
-    </a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check Todo List</title>
+  <link rel="icon" href="images/web-icon.png" type="image/x-icon">
+  <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
 
-    <button popovertarget="modal1">Close</button>
+  <!-- Navbar -->
+<!-- Navbar -->
+<nav>
+  <div class="container">
+    <div class="logo">
+      <img src="images/logo.png" width="120px">
     </div>
-  </body>
+
+      <!-- Navigation Links -->
+      <ul id="nav-links">
+        <li><a href="#hero">Home</a></li>
+        <li><a href="#benefits">Benefits</a></li>
+        <li><a href="#demo">Demo</a></li>
+      </ul>
+
+    <div class="spacer">
+      <!-- Hamburger Icon -->
+      <div class="hamburger" id="hamburger">
+        ☰
+      </div>
+      <!-- CTA Button -->
+      <a href="pages/auth.html" class="btn1 btn-outline1">Get Started Free</a>
+    </div>
+  </div>
+</nav>
+
+  <!-- Hero -->
+  <section id="hero" class="hero">
+    <h1>Organize Your Day, The Smart Way</h1>
+    <p>Check Todo List helps you plan, track, and crush your goals—without the clutter.</p>
+    <div>
+      <a href="pages/auth.html" class="btn btn-primary">Get Started Free</a>
+      <a href="#demo" class="btn btn-outline">See How It Works</a>
+    </div>
+    <img src="todo-mockup.png" alt="Todo App Mockup">
+  </section>
+
+  <!-- Benefits -->
+  <section id="benefits" class="benefits container">
+    <h2>Why Choose Check Todo List?</h2>
+    <div class="benefit-grid">
+      <div class="benefit">✅ Simple & Fast</div>
+      <div class="benefit">📅 Stay on Track</div>
+      <div class="benefit">🔄 Sync Anywhere</div>
+    </div>
+  </section>
+
+  <!-- Demo -->
+  <section id="demo" class="demo container">
+    <h2>See It In Action</h2>
+    <p>Your productivity dashboard, always within reach.</p>
+    <img src="images/demo.svg" alt="Demo Screenshot">
+  </section>
+
+  <!-- CTA -->
+  <section class="cta">
+    <h2>Start checking off tasks today.</h2>
+    <a href="#" class="btn btn-outline" style="border-color:#fff; color:#fff;">Sign Up Free</a>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Check Todo List | COS121 GROUP 5 PROJECT | 2024/25 Academic Session</p>
+  </footer>
+<script src="js/index.js"></script>
+  
+</body>
 </html>
