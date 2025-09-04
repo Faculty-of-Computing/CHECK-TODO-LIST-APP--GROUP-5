@@ -11,7 +11,7 @@ registerBtn?.addEventListener("click", () => container.classList.add("active"));
 loginBtn?.addEventListener("click", () => container.classList.remove("active"));
 
 // ✅ Removed trailing slash to avoid double-slash fetch issues
-const API_URL = "https://check-be-production.up.railway.app";
+const API_URL = "https://group5backend.onrender.com";
 
 // ======================================
 // 💬 Message system
